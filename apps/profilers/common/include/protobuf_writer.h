@@ -16,6 +16,10 @@
 #include "timeseries_metrics.pb-c.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Opaque handle types */
 typedef struct pb_trace_writer pb_trace_writer_t;
 typedef struct pb_timeseries_writer pb_timeseries_writer_t;
@@ -35,10 +39,12 @@ pb_trace_writer_t* pb_trace_writer_create(const char *filename);
 /**
  * Write a single memory event to trace
  * @param writer Writer handle
- * @param timestamp Timestamp in microseconds
- * @param thread_id Thread ID
+ * @param timestamp Timestamp (ns or us, profiler-defined)
+ * @param thread_id Thread / core ID
  * @param address Memory address
  * @param is_write true for write, false for read
+ * @param is_hit true for cache hit, false for miss (use false for DRAM)
+ * @param level Cache level (1=L1, 2=L2, 3=L3, 4=L4, 0=DRAM/unknown)
  * @param size Access size in bytes
  */
 void pb_trace_write_event(pb_trace_writer_t *writer,
@@ -46,6 +52,8 @@ void pb_trace_write_event(pb_trace_writer_t *writer,
                           uint32_t thread_id,
                           uint64_t address,
                           bool is_write,
+                          bool is_hit,
+                          uint32_t level,
                           uint32_t size);
 
 /**
@@ -131,5 +139,9 @@ void pb_timeseries_set_num_threads(pb_timeseries_writer_t *writer,
  * @param writer Writer handle
  */
 void pb_timeseries_writer_close(pb_timeseries_writer_t *writer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PROTOBUF_WRITER_H */

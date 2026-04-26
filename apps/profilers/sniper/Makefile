@@ -8,6 +8,21 @@ PIN_URL=https://software.intel.com/sites/landingpage/pintool/downloads/pin-3.30-
 PATCH_DIR ?= $(CURDIR)/../../patches
 SNIPERSIM_PATCH=$(PATCH_DIR)/tracing_sniper.patch
 
+# MemSysExplorer common library + protobuf-c integration paths
+APPS_HOME ?= $(CURDIR)/../..
+MEMSYS_COMMON_DIR ?= $(APPS_HOME)/profilers/common
+# Only point at vendored protobuf prefixes if they actually exist on disk.
+# Otherwise the system package (e.g. /usr) is used via pkg-config / linker defaults.
+ifneq ($(wildcard $(APPS_HOME)/third_party/protobuf-c/include),)
+  MEMSYS_PROTOBUF_C_PREFIX ?= $(APPS_HOME)/third_party/protobuf-c
+endif
+ifneq ($(wildcard $(APPS_HOME)/third_party/protobuf/include),)
+  MEMSYS_PROTOBUF_PREFIX ?= $(APPS_HOME)/third_party/protobuf
+endif
+export MEMSYS_COMMON_DIR
+export MEMSYS_PROTOBUF_C_PREFIX
+export MEMSYS_PROTOBUF_PREFIX
+
 .PHONY: all install_snipersim checkout_version build_snipersim clean
 
 all: install_snipersim checkout_version build_snipersim

@@ -44,6 +44,8 @@ void pb_trace_write_event(pb_trace_writer_t *writer,
                           uint32_t thread_id,
                           uint64_t address,
                           bool is_write,
+                          bool is_hit,
+                          uint32_t level,
                           uint32_t size) {
     if (!writer) return;
 
@@ -53,7 +55,9 @@ void pb_trace_write_event(pb_trace_writer_t *writer,
     event.thread_id = thread_id;
     event.address = address;
     event.mem_op = is_write ? MEMORY_TRACE__MEM_OP__WRITE : MEMORY_TRACE__MEM_OP__READ;
-    event.hit_miss = MEMORY_TRACE__HIT_MISS__MISS;
+    event.hit_miss = is_hit ? MEMORY_TRACE__HIT_MISS__HIT : MEMORY_TRACE__HIT_MISS__MISS;
+    event.level = level;
+    event.access_size = size;
 
     /* Create a wrapper trace with this single event */
     MemoryTrace__MemoryTrace trace = MEMORY_TRACE__MEMORY_TRACE__INIT;
@@ -61,7 +65,7 @@ void pb_trace_write_event(pb_trace_writer_t *writer,
     trace.events = &event_ptr;
     trace.n_events = 1;
 
-    /* Serialize and write immediately */
+    /* Serialize and write (caller is responsible for flush cadence) */
     size_t packed_size = memory_trace__memory_trace__get_packed_size(&trace);
     uint8_t *buffer = (uint8_t*)malloc(packed_size);
     memory_trace__memory_trace__pack(&trace, buffer);
@@ -70,7 +74,6 @@ void pb_trace_write_event(pb_trace_writer_t *writer,
     uint32_t msg_size = (uint32_t)packed_size;
     fwrite(&msg_size, sizeof(uint32_t), 1, writer->file);
     fwrite(buffer, 1, packed_size, writer->file);
-    fflush(writer->file);  /* Force to disk immediately */
 
     free(buffer);
     writer->total_events_written++;
@@ -235,7 +238,8 @@ pb_trace_writer_t* pb_trace_writer_create(const char *filename) {
 
 void pb_trace_write_event(pb_trace_writer_t *writer,
                           uint64_t timestamp, uint32_t thread_id,
-                          uint64_t address, bool is_write, uint32_t size) {
+                          uint64_t address, bool is_write,
+                          bool is_hit, uint32_t level, uint32_t size) {
     /* No-op */
 }
 
