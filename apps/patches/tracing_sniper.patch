@@ -11,7 +11,7 @@ index f594145..8b6be45 100644
  $(XED_DEP): $(XED_INSTALL_DEP)
  	$(_MSG) '[INSTAL] xed'
 -	$(_CMD) cd $(XED_INSTALL) ; ./mfile.py --silent --extra-flags=-fPIC --shared --install-dir $(XED_HOME) install
-+	$(_CMD) cd $(XED_INSTALL) ; ./mfile.py --python $(XED_PYTHON) --silent --extra-flags=-fPIC --shared --install-dir $(XED_HOME) install
++	$(_CMD) cd $(XED_INSTALL) ; $(XED_PYTHON) ./mfile.py --python $(XED_PYTHON) --silent --extra-flags=-fPIC --shared --install-dir $(XED_HOME) install
 
  ifneq (,$(USE_PIN))
  PIN_DOWNLOAD=https://snipersim.org/packages/pin-external-3.31-98869-gfa6f126a8-gcc-linux.tar.gz
